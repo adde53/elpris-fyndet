@@ -57,6 +57,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        price: {
+          cheap: "hsl(var(--price-cheap))",
+          mid: "hsl(var(--price-mid))",
+          expensive: "hsl(var(--price-expensive))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
