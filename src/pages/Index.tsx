@@ -41,7 +41,8 @@ export default function Index() {
             Billigaste elen just nu
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Lägsta elpris per elområde idag
+            Lägsta elpris per elområde –{" "}
+            {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
 
@@ -85,9 +86,15 @@ export default function Index() {
 
             {/* Updated at */}
             {dataUpdatedAt > 0 && (
-              <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <RefreshCw className="h-3 w-3" />
-                Uppdaterad {new Date(dataUpdatedAt).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}
+              <p className="mt-6 flex flex-col items-center gap-1 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <RefreshCw className="h-3 w-3" />
+                  Uppdaterad {new Date(dataUpdatedAt).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+                <span>
+                  Nästa uppdatering ca{" "}
+                  {new Date(dataUpdatedAt + 1000 * 60 * 15).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}
+                </span>
               </p>
             )}
           </>
