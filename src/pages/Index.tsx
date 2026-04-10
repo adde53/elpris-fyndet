@@ -41,7 +41,8 @@ export default function Index() {
             Billigaste elen just nu
           </h1>
           <p className="mt-2 text-muted-foreground">
-            Lägsta elpris per elområde idag
+            Lägsta elpris per elområde –{" "}
+            {new Date().toLocaleDateString("sv-SE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
 
