@@ -8,14 +8,18 @@ interface PriceEntry {
   time_end: string;
 }
 
+interface HourPrice {
+  start: string;
+  end: string;
+  priceOreKwh: number;
+}
+
 export interface ZoneResult {
   zone: string;
   label: string;
-  cheapestHour: {
-    start: string;
-    end: string;
-    priceOreKwh: number;
-  } | null;
+  cheapestUpcoming: HourPrice | null;
+  cheapestOverall: HourPrice | null;
+  overallIsPast: boolean;
   error: boolean;
 }
 
@@ -25,6 +29,14 @@ const ZONES = [
   { zone: "SE3", label: "Stockholm" },
   { zone: "SE4", label: "Malmö" },
 ];
+
+function toHourPrice(p: PriceEntry): HourPrice {
+  return {
+    start: p.time_start,
+    end: p.time_end,
+    priceOreKwh: Math.round(p.SEK_per_kWh * 100 * 10) / 10,
+  };
+}
 
 async function fetchZonePrices(zone: string): Promise<PriceEntry[]> {
   const now = new Date();
@@ -39,28 +51,32 @@ async function fetchZonePrices(zone: string): Promise<PriceEntry[]> {
 }
 
 async function fetchAllZones(): Promise<ZoneResult[]> {
+  const now = new Date();
+
   const results = await Promise.allSettled(
     ZONES.map(async ({ zone, label }) => {
       try {
         const prices = await fetchZonePrices(zone);
-        if (!prices.length) return { zone, label, cheapestHour: null, error: false };
+        if (!prices.length) return { zone, label, cheapestUpcoming: null, cheapestOverall: null, overallIsPast: false, error: false };
 
-        const cheapest = prices.reduce((min, p) =>
-          p.SEK_per_kWh < min.SEK_per_kWh ? p : min
-        );
+        const cheapestAll = prices.reduce((min, p) => (p.SEK_per_kWh < min.SEK_per_kWh ? p : min));
+        const upcoming = prices.filter((p) => new Date(p.time_end) > now);
+        const cheapestUp = upcoming.length
+          ? upcoming.reduce((min, p) => (p.SEK_per_kWh < min.SEK_per_kWh ? p : min))
+          : null;
+
+        const overallIsPast = new Date(cheapestAll.time_end) <= now;
 
         return {
           zone,
           label,
-          cheapestHour: {
-            start: cheapest.time_start,
-            end: cheapest.time_end,
-            priceOreKwh: Math.round(cheapest.SEK_per_kWh * 100 * 10) / 10,
-          },
+          cheapestUpcoming: cheapestUp ? toHourPrice(cheapestUp) : null,
+          cheapestOverall: toHourPrice(cheapestAll),
+          overallIsPast,
           error: false,
         };
       } catch {
-        return { zone, label, cheapestHour: null, error: true };
+        return { zone, label, cheapestUpcoming: null, cheapestOverall: null, overallIsPast: false, error: true };
       }
     })
   );
@@ -68,7 +84,7 @@ async function fetchAllZones(): Promise<ZoneResult[]> {
   return results.map((r) =>
     r.status === "fulfilled"
       ? r.value
-      : { zone: "?", label: "?", cheapestHour: null, error: true }
+      : { zone: "?", label: "?", cheapestUpcoming: null, cheapestOverall: null, overallIsPast: false, error: true }
   );
 }
 
