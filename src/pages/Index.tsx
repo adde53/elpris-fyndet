@@ -4,11 +4,11 @@ import { Zap, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function getTiers(zones: ZoneResult[]): Record<string, "cheap" | "mid" | "expensive"> {
-  const withPrices = zones.filter((z) => z.cheapestHour);
+  const withPrices = zones.filter((z) => z.cheapestUpcoming);
   if (!withPrices.length) return {};
 
   const sorted = [...withPrices].sort(
-    (a, b) => (a.cheapestHour?.priceOreKwh ?? Infinity) - (b.cheapestHour?.priceOreKwh ?? Infinity)
+    (a, b) => (a.cheapestUpcoming?.priceOreKwh ?? Infinity) - (b.cheapestUpcoming?.priceOreKwh ?? Infinity)
   );
 
   const tiers: Record<string, "cheap" | "mid" | "expensive"> = {};
@@ -25,8 +25,8 @@ export default function Index() {
 
   const tiers = zones ? getTiers(zones) : {};
   const cheapestZone = zones
-    ?.filter((z) => z.cheapestHour)
-    .sort((a, b) => (a.cheapestHour!.priceOreKwh) - (b.cheapestHour!.priceOreKwh))[0];
+    ?.filter((z) => z.cheapestUpcoming)
+    .sort((a, b) => (a.cheapestUpcoming!.priceOreKwh) - (b.cheapestUpcoming!.priceOreKwh))[0];
 
   return (
     <div className="min-h-screen bg-background">
@@ -69,16 +69,16 @@ export default function Index() {
             </div>
 
             {/* Summary */}
-            {cheapestZone?.cheapestHour && (
+            {cheapestZone?.cheapestUpcoming && (
               <div className="mt-8 rounded-lg border bg-card p-5 text-center space-y-1">
-                <p className="text-sm text-muted-foreground">Billigaste elområde idag</p>
+                <p className="text-sm text-muted-foreground">Billigaste kommande timmen</p>
                 <p className="text-lg font-semibold">
                   {cheapestZone.zone} – {cheapestZone.label}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Lägsta pris:{" "}
                   <span className="font-medium text-foreground">
-                    {cheapestZone.cheapestHour.priceOreKwh} öre/kWh
+                    {cheapestZone.cheapestUpcoming.priceOreKwh} öre/kWh
                   </span>
                 </p>
               </div>

@@ -31,7 +31,9 @@ interface PriceCardProps {
 }
 
 export function PriceCard({ data, tier, isCheapest }: PriceCardProps) {
-  const { zone, label, cheapestHour, error } = data;
+  const { zone, label, cheapestUpcoming, cheapestOverall, overallIsPast, error } = data;
+  const hasUpcoming = !!cheapestUpcoming;
+  const hasData = hasUpcoming || !!cheapestOverall;
 
   return (
     <Card className={`relative transition-all duration-300 hover:shadow-md ${tierStyles[tier]}`}>
@@ -50,19 +52,31 @@ export function PriceCard({ data, tier, isCheapest }: PriceCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {error || !cheapestHour ? (
+        {error || !hasData ? (
           <p className="text-sm text-muted-foreground">Data tillfälligt otillgänglig</p>
         ) : (
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">
-              Billigaste timmen:{" "}
-              <span className="font-medium text-foreground">
-                {formatTime(cheapestHour.start)}–{formatTime(cheapestHour.end)}
-              </span>
-            </p>
-            <p className="text-2xl font-bold tracking-tight">
-              {cheapestHour.priceOreKwh} <span className="text-sm font-normal text-muted-foreground">öre/kWh</span>
-            </p>
+          <div className="space-y-2">
+            {hasUpcoming ? (
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  Billigaste kommande timmen:{" "}
+                  <span className="font-medium text-foreground">
+                    {formatTime(cheapestUpcoming.start)}–{formatTime(cheapestUpcoming.end)}
+                  </span>
+                </p>
+                <p className="text-2xl font-bold tracking-tight">
+                  {cheapestUpcoming.priceOreKwh} <span className="text-sm font-normal text-muted-foreground">öre/kWh</span>
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Inga fler billiga timmar idag</p>
+            )}
+
+            {overallIsPast && cheapestOverall && (
+              <p className="text-xs text-muted-foreground/70">
+                Dagens lägsta var {cheapestOverall.priceOreKwh} öre/kWh kl {formatTime(cheapestOverall.start)}–{formatTime(cheapestOverall.end)} (passerad)
+              </p>
+            )}
           </div>
         )}
       </CardContent>
